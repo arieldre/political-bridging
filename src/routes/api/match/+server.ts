@@ -3,6 +3,9 @@ import type { RequestHandler } from './$types';
 import { meetsOppositionFilterRelaxed, scoreCandidate } from '$lib/matching/algorithm';
 
 export const POST: RequestHandler = async ({ locals }) => {
+  // Require the caller to be authenticated — protects queue data
+  if (!locals.user) return json({ error: 'unauthorized' }, { status: 401 });
+
   const supabase = locals.supabase;
 
   // Get all queued users with their questionnaire data
@@ -96,6 +99,19 @@ export const POST: RequestHandler = async ({ locals }) => {
     }
 
     if (bestCandidate && bestScore >= 0) {
+      // Guard against concurrent double-match: check if either user already has an open match
+      const { data: existing } = await supabase
+        .from('matches')
+        .select('id')
+        .or(`user_a.eq.${a.user_id},user_b.eq.${a.user_id},user_a.eq.${bestCandidate},user_b.eq.${bestCandidate}`)
+        .is('ended_at', null)
+        .limit(1)
+        .single();
+      if (existing) {
+        // One of the users was already matched by a concurrent call — skip
+        continue;
+      }
+
       // Create match
       await supabase.from('matches').insert({
         user_a: a.user_id,

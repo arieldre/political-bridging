@@ -117,7 +117,12 @@
 
     // Check if initiator (user_a) by fetching match
     const { data: match } = await supabase.from('matches').select('user_a, user_b').eq('id', matchId).single();
-    if (!match) { goto('/home'); return; }
+    if (!match) {
+      // Stop camera before navigating away
+      localStream?.getTracks().forEach(t => t.stop());
+      goto('/home');
+      return;
+    }
 
     const isInitiator = match.user_a === data.user!.id;
 

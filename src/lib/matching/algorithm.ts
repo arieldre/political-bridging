@@ -62,11 +62,12 @@ export function hobbyOverlap(a: string[], b: string[]): string[] {
 }
 
 // Rank candidates: higher score = better match
+// NOTE: opposition filter is the caller's responsibility (use meetsOppositionFilterRelaxed).
+// scoreCandidate does NOT re-apply the strict threshold so time-based relaxation works.
 export function scoreCandidate(
   user: MatchCandidate,
   candidate: MatchCandidate
 ): number {
-  if (!meetsOppositionFilter(user.vector, candidate.vector)) return -1;
   const overlap = hobbyOverlap(user.hobbies, candidate.hobbies);
   const hobbyScore = overlap.length * 2;
   // Value similarity would go here, simplified for MVP

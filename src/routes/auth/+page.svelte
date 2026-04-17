@@ -19,6 +19,13 @@
       error = 'יש לאשר שגילך 18+';
       return;
     }
+    if (mode === 'signup') {
+      const year = parseInt(birthYear);
+      if (!birthYear || isNaN(year) || year < 1900 || year > 2007) {
+        error = 'נא להזין שנת לידה תקינה (18+)';
+        return;
+      }
+    }
     loading = true;
     try {
       if (mode === 'signup') {
