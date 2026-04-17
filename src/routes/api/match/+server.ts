@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ locals }) => {
   const userIds = queue.map(q => q.user_id);
   const { data: questionnaires } = await supabase
     .from('questionnaires')
-    .select('user_id, hobbies, security_score, religion_score, economics_score')
+    .select('user_id, hobbies, political_vector')
     .in('user_id', userIds);
 
   const { data: profiles } = await supabase
@@ -42,10 +42,11 @@ export const POST: RequestHandler = async ({ locals }) => {
     const aP = pMap.get(a.user_id);
     if (!aQ || !aP) continue;
 
+    const aPV = aQ.political_vector as { security: number; religion: number; economics: number } | null;
     const aVec = {
-      security: aQ.security_score ?? 0,
-      religion: aQ.religion_score ?? 0,
-      economics: aQ.economics_score ?? 0
+      security: aPV?.security ?? 0,
+      religion: aPV?.religion ?? 0,
+      economics: aPV?.economics ?? 0
     };
 
     const aWaitSeconds = (Date.now() - new Date(a.queued_at).getTime()) / 1000;
@@ -63,10 +64,11 @@ export const POST: RequestHandler = async ({ locals }) => {
       const bP = pMap.get(b.user_id);
       if (!bQ || !bP) continue;
 
+      const bPV = bQ.political_vector as { security: number; religion: number; economics: number } | null;
       const bVec = {
-        security: bQ.security_score ?? 0,
-        religion: bQ.religion_score ?? 0,
-        economics: bQ.economics_score ?? 0
+        security: bPV?.security ?? 0,
+        religion: bPV?.religion ?? 0,
+        economics: bPV?.economics ?? 0
       };
 
       const bWaitSeconds = (Date.now() - new Date(b.queued_at).getTime()) / 1000;

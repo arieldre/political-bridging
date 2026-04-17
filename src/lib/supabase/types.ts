@@ -162,6 +162,7 @@ export interface Database {
           rater_id: string;
           ratee_id: string;
           stars: number;
+          talk_again: boolean | null;
           report_category: ReportCategory | null;
           report_text: string | null;
           created_at: string;
@@ -172,6 +173,7 @@ export interface Database {
           rater_id: string;
           ratee_id: string;
           stars: number;
+          talk_again?: boolean | null;
           report_category?: ReportCategory | null;
           report_text?: string | null;
           created_at?: string;

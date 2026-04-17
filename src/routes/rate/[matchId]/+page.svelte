@@ -48,6 +48,7 @@
       rater_id: data.user.id,
       ratee_id: rateeId,
       stars,
+      talk_again: talkAgain,
       report_category: reportCategory as any ?? null,
       report_text: reportText || null,
     });
