@@ -14,5 +14,8 @@
   <button class="btn-primary text-xl px-10 py-4" onclick={() => goto('/auth')}>
     בואו נתחיל
   </button>
+  <button class="mt-3 text-[#475569] text-base underline underline-offset-2" onclick={() => goto('/auth?guest=1')}>
+    כניסה כאורח
+  </button>
   <p class="mt-6 text-sm text-[#94A3B8]">לגילאי 18+ בלבד · שמירה על פרטיות מלאה</p>
 </main>

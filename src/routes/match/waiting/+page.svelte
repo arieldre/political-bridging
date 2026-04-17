@@ -19,6 +19,7 @@
 
   let pollInterval: ReturnType<typeof setInterval>;
   let timerInterval: ReturnType<typeof setInterval>;
+  let matchTriggerInterval: ReturnType<typeof setInterval>;
   let matchChannel: any;
 
   function moveTarget() {
@@ -75,9 +76,16 @@
       if (waitingSeconds > 300) cancelSearch(); // 5 min timeout
     }, 1000);
 
+    // Auto-trigger the match engine every 5 seconds (no cron needed)
+    // This lets both users' browsers race to process the queue — harmless if one wins
+    const triggerMatch = () => fetch('/api/match', { method: 'POST' }).catch(() => {});
+    await triggerMatch();
+    matchTriggerInterval = setInterval(triggerMatch, 5000);
+
     // Start polling every 3 seconds
     pollInterval = setInterval(checkForMatch, 3000);
     await checkForMatch(); // immediate first check
+
 
     // Start game after 5 seconds
     setTimeout(() => { gameActive = true; moveTarget(); }, 5000);
@@ -103,6 +111,7 @@
   onDestroy(() => {
     clearInterval(pollInterval);
     clearInterval(timerInterval);
+    clearInterval(matchTriggerInterval);
     matchChannel?.unsubscribe();
   });
 

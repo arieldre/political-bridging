@@ -121,10 +121,18 @@
 
     const isInitiator = match.user_a === data.user!.id;
 
+    // Guard: initiator sends offer only once
+    let offerSent = false;
+
     // Set up signaling + WebRTC
     signaling = new SignalingChannel(supabase, matchId, data.user!.id, async (msg) => {
       if (msg.type === 'end_call') { endCall('left_early'); return; }
-      if (msg.type === 'ready' && isInitiator) { await peer?.startCall(); return; }
+      // When non-initiator announces they're ready, initiator sends the offer
+      if (msg.type === 'ready' && isInitiator && !offerSent) {
+        offerSent = true;
+        await peer?.startCall();
+        return;
+      }
       await peer?.handleSignal(msg);
     });
 
@@ -139,9 +147,19 @@
 
     if (localStream) peer.addLocalStream(localStream);
 
-    // Signal ready
+    // Announce ready to the other peer
     await signaling.send({ type: 'ready' });
-    if (isInitiator) await peer.startCall();
+
+    // Initiator fallback: if non-initiator was already in the channel and missed
+    // our subscription window, send the offer after a short delay if not yet sent.
+    if (isInitiator) {
+      setTimeout(async () => {
+        if (!offerSent) {
+          offerSent = true;
+          await peer?.startCall();
+        }
+      }, 2000);
+    }
   });
 
   onDestroy(() => {
